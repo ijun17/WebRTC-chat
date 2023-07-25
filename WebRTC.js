@@ -7,8 +7,11 @@ const HTML_candidate_remote = document.getElementById("candidate-remote");
 const configuration = null;
 let peerConnection = new RTCPeerConnection(configuration);
 let dataChannel = peerConnection.createDataChannel("dataChannel", { reliable: true , ordered: false});
+peerConnection.ondatachannel = function (event) {
+    dataChannel = event.channel;
+};
 dataChannel.onopen = () => {
-    console.log("openopeneladsfk");
+    console.log("dataChannel: open");
     dataChannel.send("Hello, world!");
 };
 dataChannel.onmessage = function(event) {
@@ -31,7 +34,6 @@ function send(message){
 
 peerConnection.onicecandidate = function(event) {
     if (event.candidate) {
-        console.log(event.candidate)
         HTML_candidate_local.value=JSON.stringify(event.candidate)
     }
 };
@@ -59,7 +61,6 @@ function answer(offer) {
 HTML_remote.addEventListener("keydown", function (event) {
     if (event.keyCode === 13) {
         event.preventDefault();
-        console.log(JSON.parse(HTML_remote.value))
         answer(JSON.parse(HTML_remote.value))
     }
 });
