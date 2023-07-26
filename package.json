@@ -1,0 +1,23 @@
+{
+  "name": "SignalingServer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "WebRTC.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ijun17/WebRTC-test.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ijun17/WebRTC-test/issues"
+  },
+  "homepage": "https://github.com/ijun17/WebRTC-test#readme",
+  "dependencies": {
+    "ws": "^8.13.0"
+  }
+}
