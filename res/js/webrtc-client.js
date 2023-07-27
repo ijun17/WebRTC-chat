@@ -1,6 +1,6 @@
 class Multi{
     ws=null
-    ip=null//"port-0-webrtc-test-eg4e2alkj86xoo.sel4.cloudtype.app/",
+    ip=null//"wss://port-0-webrtc-test-eg4e2alkj86xoo.sel4.cloudtype.app/",
     pc;
     dc;
     offer;
@@ -54,7 +54,7 @@ class Multi{
     }
     connectToSignalingServer(){
         this.disconnectToSignalingServer(); 
-        this.ws = new WebSocket("wss://"+this.ip);
+        this.ws = new WebSocket(this.ip);
         this.ws.onclose = () => { console.log("websocket close") }
         this.ws.onerror = () => { console.log("websocket error") }
     }

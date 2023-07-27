@@ -1,4 +1,4 @@
-let multi = new Multi("localhost:8080")//"port-0-webrtc-test-eg4e2alkj86xoo.sel4.cloudtype.app/");
+let multi = new Multi("wss://port-0-webrtc-test-eg4e2alkj86xoo.sel4.cloudtype.app/")//"port-0-webrtc-test-eg4e2alkj86xoo.sel4.cloudtype.app/");
 //multi.createRoom();
 
 const HTML_messageSender=document.getElementById("messageSender")
