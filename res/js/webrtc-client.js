@@ -31,8 +31,8 @@ class Multi{
                 if(data.id){
                     this.onroomcreated(data.id)
                 }else if(data.answer){
-                    this.pc.setRemoteDescription(data.answer);
-                    this.pc.addIceCandidate(data.ice);
+                    this.pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                    this.pc.addIceCandidate(new RTCIceCandidate(data.ice));
                 }
             }
         };
