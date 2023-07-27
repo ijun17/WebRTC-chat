@@ -54,7 +54,7 @@ class Multi{
     }
     connectToSignalingServer(){
         this.disconnectToSignalingServer(); 
-        this.ws = new WebSocket("ws://"+this.ip);
+        this.ws = new WebSocket("wss://"+this.ip);
         this.ws.onclose = () => { console.log("websocket close") }
         this.ws.onerror = () => { console.log("websocket error") }
     }
