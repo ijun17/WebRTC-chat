@@ -1,9 +1,186 @@
-textarea{
-    width:300px;
-    height:30px;
-    resize:none;
+:root {
+    --main-bg-color: #f0f0f0;
+    --sub-bg-color: white;
+    --point-color: #007bff;
+    --main-text-color: #444;
+    --sub-text-color: #fff;
+    --border-color: #ccc;
 }
 
-textarea::after{
-    content: "adsfsfdsa";
+html {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    background-color: var(--main-bg-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 95%;
+}
+
+.room-form {
+    /* display: none; */
+    max-width: 600px;
+    max-height: 400px;
+    width: 100%;
+    height: 100%;
+    background-color: var(--sub-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.room-button-container {
+    width: 100%;
+    height: 20%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: nowrap;
+
+    background-color: black;
+}
+
+.create-room-button,
+.enter-room-button {
+    width: 50%;
+    height: 100%;
+    color: var(--sub-text-color);
+    font-size: 27px;
+    background-color: var(--point-color);
+    border: none;
+    padding: 20px 0;
+}
+
+.create-room-button:hover,
+.enter-room-button:hover,
+.room-button-click{
+    background-color: var(--sub-bg-color);
+    color: var(--point-color);
+}
+
+.room-input-container {
+    width: 100%;
+    height: 80%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.create-room-input-container,
+.enter-room-input-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    width: 50%;
+    color: var(--main-text-color);
+}
+
+input {
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 16px;
+    padding: 10px;
+}
+
+
+.loader {
+    display: none;
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 0.5s linear infinite;
+    -webkit-animation: spin 0.5s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+@-webkit-keyframes spin {
+    to {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+
+
+
+
+
+.chating-container {
+    display: none;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.chating-header {
+    width: 100%;
+    height: 10%;
+    background-color: var(--point-color);
+    color:var(--sub-text-color);
+    border-radius: 10px;
+    font-size: 25px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chating-content{
+    background-color: unset;
+    width: 100%;
+    height: 80%;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.chating-footer{
+    width: 100%;
+    height: 10%;
+    background-color: var(--point-color);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.chating-send-input{
+    height: 70%;
+    width:88%;
+    border-radius: 5px;
+    padding: 0;
+}
+.chating-send-button{
+    width:10%;
+    height:80%;
+    border: unset;
+    border-radius: 10px;    
+    background-color: var(--sub-text-color);
+    color: var(--main-text-color);
+    font-size: 20px;
+}
+
+.chating-send-button:hover{
+    background-color: var(--point-color);
+    color:var(--sub-text-color);
+}
+
+.chating-message-me{
+    text-align: end;
+}
+
+.chating-message-other{
+    text-align: start;
 }

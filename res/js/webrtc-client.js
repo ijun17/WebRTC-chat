@@ -1,11 +1,12 @@
 class Multi{
-    ws=null
-    ip=null//"wss://port-0-webrtc-test-eg4e2alkj86xoo.sel4.cloudtype.app/",
+    ws;
+    ip;//"wss://port-0-webrtc-test-eg4e2alkj86xoo.sel4.cloudtype.app/",
     pc;
     dc;
     offer;
     onroomcreated(){}
     ondatachannelopen(){}
+    ondatachannelmessage(){}
     constructor(ip){
         this.ip=ip;//"localhost:8080"
     }
@@ -21,7 +22,7 @@ class Multi{
             if(!ice)return;
             this.connectToSignalingServer();
             this.ws.onopen = (event) => {
-                console.log("onopen")
+                console.log("websocket open")
                 this.ws.send(JSON.stringify({ type: "host", offer: this.offer, ice: ice}))
             }
             this.ws.onmessage = (event) => {
@@ -63,7 +64,16 @@ class Multi{
         this.pc = new RTCPeerConnection(null);
         this.pc.ondatachannel = (event) =>{this.dc=event.channel;};
         this.dc = this.pc.createDataChannel("dataChannel", { reliable: true , ordered: false});
-        this.dc.onopen = () => {this.ondatachannelopen(); this.ws.send('{"type":"complete"}')};
+        this.dc.onopen = () => {this.ondatachannelopen(); this.ws.send('{"type":"complete"}'); console.log("datachannel open")};
+        this.dc.onmessage = (event) => {this.ondatachannelmessage(event.data)}
+    }
+    send(message){
+        if(this.pc && this.pc.connectionState == "connected"){
+            this.dc.send(message);
+            return true;
+        }
+        console.log("데이터 채널이 연결되지 않았습니다.")
+        return false;
     }
     isConneted(){return this.ws!=null && this.ws.readyState == WebSocket.OPEN;}
 }

@@ -5,17 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebRTC test</title>
     <link href="res/css/style.css" rel="stylesheet">
-</head>
-<body>
-    <div>
-        <button id="createRoomButton">CREATE ROOM</button>
-        <textarea id="roomID" readonly></textarea>
-    </div>
-    <input type="text" id="enterRoomInput" placeholder="참가할 방번호">
-    <div id="messageReceiver"></div>
-    <textarea id="messageSender"></textarea>
+    </head>
     
-    <!-- <script src="res/js/WebRTC.js"></script> -->
+    <body>
+        <div class="room-form">
+            <div class="room-button-container">
+                <button class="create-room-button">Create Room</button>
+                <button class="enter-room-button">Enter Room</button>
+            </div>
+            <div class="room-input-container">
+                <div class="create-room-input-container">
+                    <input class="create-room-input" placeholder="방을 만들 수 없습니다." readonly>
+                    <p>다른 사람에게 이 코드를 보여주세요</p>
+                </div>
+                <div class="enter-room-input-container">
+                    <input class="enter-room-input" placeholder="room id 입력">
+                    <p>방 아이디를 입력하고 엔터를 치세요</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="loader"></div>
+
+        <div class="chating-container">
+            <div class="chating-header">
+                <div>WebRTC chat</div>
+            </div>
+            <div class="chating-content"></div>
+            <div class="chating-footer">
+                <input class="chating-send-input" placeholder="">
+                <button class="chating-send-button">send</button>
+            </div>
+        </div>
+
+
+    
+
+
+
     <script src="res/js/webrtc-client.js"></script>
     <script src="res/js/client.js"></script>
 </body>
