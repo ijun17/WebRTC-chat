@@ -4,6 +4,7 @@ class Multi{
     pc;
     dc;
     offer;
+    answer;
     onroomcreated(){}
     ondatachannelopen(){}
     ondatachannelmessage(){}
@@ -30,7 +31,8 @@ class Multi{
                 if(data.id){
                     this.onroomcreated(data.id)
                 }else if(data.answer){
-                    this.pc.setRemoteDescription(data.answer)
+                    this.pc.setRemoteDescription(data.answer);
+                    this.pc.addIceCandidate(data.ice);
                 }
             }
         };
@@ -45,12 +47,17 @@ class Multi{
         this.ws.onmessage = (event) => {
             let data=JSON.parse(event.data);
             this.pc.setRemoteDescription(new RTCSessionDescription(data.offer))
+            this.pc.addIceCandidate(new RTCIceCandidate(data.ice));
             this.pc.createAnswer()
                 .then((answer)=>{
-                    this.ws.send(JSON.stringify({answer:answer}))
+                    this.answer=answer;
                     this.pc.setLocalDescription(new RTCSessionDescription(answer));
-                    this.pc.addIceCandidate(new RTCIceCandidate(data.ice));
                 }).catch((e)=>{console.log(e)});
+            this.pc.onicecandidate = (event) =>{
+                let ice=event.candidate;
+                if(!ice)return;
+                this.ws.send(JSON.stringify({answer:this.answer, ice:this.ice}))
+            } 
         }
     }
     connectToSignalingServer(){
