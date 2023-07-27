@@ -7,17 +7,17 @@
     <link href="res/css/style.css" rel="stylesheet">
 </head>
 <body>
-    <div id="text"></div>
     <div>
-        <textarea id="local" readonly></textarea>
-    <textarea id="remote"></textarea>
+        <button id="createRoomButton">CREATE ROOM</button>
+        <textarea id="roomID" readonly></textarea>
     </div>
-    <div>
-        <textarea id="candidate-local" readonly></textarea>
-        <textarea id="candidate-remote"></textarea>
-    </div>
+    <input type="text" id="enterRoomInput" placeholder="참가할 방번호">
+    <div id="messageReceiver"></div>
+    <textarea id="messageSender"></textarea>
     
-    <script src="res/js/WebRTC.js"></script>
-    <script src="res/js/WebSocket.js"></script>
+    <!-- <script src="res/js/WebRTC.js"></script> -->
+    <script src="res/js/webrtc-client.js"></script>
+    <script src="res/js/client.js"></script>
+</body>
 </body>
 </html>
