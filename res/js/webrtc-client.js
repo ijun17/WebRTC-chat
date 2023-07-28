@@ -16,7 +16,8 @@ class Multi{
         this.pc.createOffer()
             .then((offer)=>{
                 this.offer=offer;
-                this.pc.setLocalDescription(new RTCSessionDescription(offer));
+                this.pc.setLocalDescription(new RTCSessionDescription(offer))
+                    .catch((e)=>{console.log(e)});
             }).catch((e)=>{console.error(e)})
         this.pc.onicecandidate = (event) => {
             let ice=event.candidate;
@@ -31,8 +32,13 @@ class Multi{
                 if(data.id){
                     this.onroomcreated(data.id)
                 }else if(data.answer){
-                    this.pc.setRemoteDescription(new RTCSessionDescription(data.answer));
-                    this.pc.addIceCandidate(new RTCIceCandidate(data.ice));
+                    try{
+                        this.pc.setRemoteDescription(new RTCSessionDescription(data.answer))
+                        this.pc.addIceCandidate(new RTCIceCandidate(data.ice));
+                    }catch(e){
+                        console.error(e, data.answer, data.ice)
+                    }
+                    
                 }
             }
         };
@@ -46,17 +52,22 @@ class Multi{
         }
         this.ws.onmessage = (event) => {
             let data=JSON.parse(event.data);
-            this.pc.setRemoteDescription(new RTCSessionDescription(data.offer))
-            this.pc.addIceCandidate(new RTCIceCandidate(data.ice));
+            try{
+                this.pc.setRemoteDescription(new RTCSessionDescription(data.offer))
+                this.pc.addIceCandidate(new RTCIceCandidate(data.ice));
+            }catch(e){
+                console.error(e, data.offer, data.ice)
+            }
             this.pc.createAnswer()
                 .then((answer)=>{
                     this.answer=answer;
-                    this.pc.setLocalDescription(new RTCSessionDescription(answer));
+                    this.pc.setLocalDescription(new RTCSessionDescription(answer))
+                        .catch((e)=>{console.log(e)});
                 }).catch((e)=>{console.log(e)});
             this.pc.onicecandidate = (event) =>{
                 let ice=event.candidate;
                 if(!ice)return;
-                this.ws.send(JSON.stringify({answer:this.answer, ice:this.ice}))
+                this.ws.send(JSON.stringify({answer:this.answer, ice:ice}))
             } 
         }
     }
