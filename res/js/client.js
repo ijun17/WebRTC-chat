@@ -1,5 +1,5 @@
-//const multi = new SimpleWebRTC("wss://port-0-webrtc-test-eg4e2alkj86xoo.sel4.cloudtype.app/")
-const multi= new SimpleWebRTC("ws://localhost:8080");
+const multi = new SimpleWebRTC("wss://port-0-webrtc-test-eg4e2alkj86xoo.sel4.cloudtype.app/")
+//const multi= new SimpleWebRTC("ws://localhost:8080");
 
 const roomForm = document.querySelector(".room-form");
 const loader = document.querySelector(".loader");
