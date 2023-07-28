@@ -76,7 +76,7 @@ body {
     flex-direction: column;
     justify-content: center;
     text-align: center;
-    width: 50%;
+    width: 100%;
     color: var(--main-text-color);
 }
 

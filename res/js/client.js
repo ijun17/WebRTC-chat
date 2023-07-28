@@ -68,15 +68,3 @@ multi.ondatachannelmessage = (message) => {
     chatingContent.innerHTML += `<p class="chating-message-other">${message}</p>`;
     chatingContent.scrollTop = chatingContent.scrollHeight;
 }
-
-
-
-/*
-try{
-    multi.pc.setRemoteDescription(new RTCSessionDescription("asfdsf"))
-}catch(e){
-    console.error(e)
-}
-
-
-*/
