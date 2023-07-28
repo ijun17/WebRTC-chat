@@ -3,8 +3,7 @@ class Multi{
     ip;//"wss://port-0-webrtc-test-eg4e2alkj86xoo.sel4.cloudtype.app/",
     pc;
     dc;
-    offer;
-    answer;
+    localSDP;
     onroomcreated(){}
     ondatachannelopen(){}
     ondatachannelmessage(){}
@@ -13,33 +12,18 @@ class Multi{
     }
     createRoom() {
         this.createWebRTC();
-        this.pc.createOffer()
-            .then((offer)=>{
-                this.offer=offer;
-                this.pc.setLocalDescription(new RTCSessionDescription(offer))
-                    .catch((e)=>{console.log(e)});
-            }).catch((e)=>{console.error(e)})
+        this.setLocal(this.pc.createOffer());
         this.pc.onicecandidate = (event) => {
-            let ice=event.candidate;
-            if(!ice)return;
+            if(!event.candidate)return;
             this.connectToSignalingServer();
-            this.ws.onopen = (event) => {
+            this.ws.onopen = () => {
                 console.log("websocket open")
-                this.ws.send(JSON.stringify({ type: "host", offer: this.offer, ice: ice}))
+                this.sendLocal("host",this.localSDP,event.candidate)
             }
             this.ws.onmessage = (event) => {
-                let data=JSON.parse(event.data);
-                if(data.id){
-                    this.onroomcreated(data.id)
-                }else if(data.answer){
-                    try{
-                        this.pc.setRemoteDescription(new RTCSessionDescription(data.answer))
-                        this.pc.addIceCandidate(new RTCIceCandidate(data.ice));
-                    }catch(e){
-                        console.error(e, data.answer, data.ice)
-                    }
-                    
-                }
+                const data=JSON.parse(event.data);
+                if(data.id)this.onroomcreated(data.id)
+                else if(data.sdp)this.setRemote(data.sdp,data.ice);
             }
         };
     }
@@ -51,23 +35,11 @@ class Multi{
             this.ws.send(JSON.stringify({ type: "guest", id:id}))
         }
         this.ws.onmessage = (event) => {
-            let data=JSON.parse(event.data);
-            try{
-                this.pc.setRemoteDescription(new RTCSessionDescription(data.offer))
-                this.pc.addIceCandidate(new RTCIceCandidate(data.ice));
-            }catch(e){
-                console.error(e, data.offer, data.ice)
-            }
-            this.pc.createAnswer()
-                .then((answer)=>{
-                    this.answer=answer;
-                    this.pc.setLocalDescription(new RTCSessionDescription(answer))
-                        .catch((e)=>{console.log(e)});
-                }).catch((e)=>{console.log(e)});
+            const data=JSON.parse(event.data);
+            this.setRemote(data.sdp,data.ice);
+            this.setLocal(this.pc.createAnswer());
             this.pc.onicecandidate = (event) =>{
-                let ice=event.candidate;
-                if(!ice)return;
-                this.ws.send(JSON.stringify({answer:this.answer, ice:ice}))
+                if(event.candidate)this.sendLocal("answer",this.localSDP,event.candidate)
             } 
         }
     }
@@ -93,5 +65,24 @@ class Multi{
         console.log("데이터 채널이 연결되지 않았습니다.")
         return false;
     }
-    isConneted(){return this.ws!=null && this.ws.readyState == WebSocket.OPEN;}
+    sendLocal(type, sdp, ice){
+        this.ws.send(JSON.stringify({type:type,sdp:sdp,ice:ice}))
+    }
+    setLocal(sdpPromise){
+        sdpPromise.then((sdp)=>{
+            this.localSDP=sdp
+            this.pc.setLocalDescription(sdp)
+                .catch((e)=>{console.log(e,sdp)});
+        }).catch((e)=>{console.log(e,this.localSDP);})
+    }
+    setRemote(sdpObject, iceObject){
+        try{
+            this.pc.setRemoteDescription(new RTCSessionDescription(sdpObject))
+                .catch((e)=>{console.log(e, sdpObject)})
+            this.pc.addIceCandidate(new RTCIceCandidate(iceObject));
+        }catch(e){
+            console.log(e, sdpObject, iceObject)
+        }
+    }
+    isConneted(){return (this.ws && this.ws.readyState == WebSocket.OPEN);}
 }

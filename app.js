@@ -16,7 +16,7 @@ class RoomManager{
         if(this.isFull())return;
         const id = this.emptyRooms.pop();
         this.rooms[id] = new Room(ws,offer,ice);
-        ws.send(JSON.stringify({id:id}))
+        ws.send(JSON.stringify({type:"hostid",id:id}))
         ws.onmessage=(event)=>{console.log("Room complete: "+id); this.killRoom(id); }
         ws.onclose=()=>{this.killRoom(id)};
         console.log('Room created: '+id);
@@ -41,22 +41,26 @@ class RoomManager{
 }
 
 class Room{
-    host=null;
-    guest=null;
+    host;//host ws
+    offer;//host sdp
+    ice;//host ice
+    guest;//guest ws
     constructor(ws, offer, ice){
-        this.host={ws:ws,offer:offer, ice:ice}
+        this.host=ws;
+        this.offer=offer; 
+        this.ice=ice; 
         this.guest=null;
     }
     setGuest(ws){
-        if(this.guest!=null)return;
-        this.guest = { ws: ws };
-        ws.send(JSON.stringify({ type: "offer", offer: this.host.offer, ice: this.host.ice }));
-        ws.onmessage = (event) => {this.host.ws.send(event.data.toString("utf-8"));}
+        if(this.guest)return;
+        this.guest = ws;
+        ws.send(JSON.stringify({ type: "offer", sdp: this.offer, ice: this.ice }));
+        ws.onmessage = (event) => {this.host.send(event.data.toString("utf-8"));}
         ws.onclose = () => { this.guest = null;}
     }
     reset(){
-        if(this.host!= null && this.host.ws.readyState==WebSocket.OPEN)this.host.ws.close();
-        if(this.guest!= null && this.guest.ws.readyState==WebSocket.OPEN)this.guest.ws.close();
+        if(this.host && (this.host.readyState==WebSocket.OPEN || this.host.readyState==WebSocket.CONNECTING))this.host.close();
+        if(this.guest && (this.guest.readyState==WebSocket.OPEN || this.guest.readyState==WebSocket.CONNECTING))this.guest.close();
         this.host=null;
         this.guest=null;
     }
@@ -85,8 +89,9 @@ wss.on('connection', (ws) => {
     connections.delete(ws);
     ws.onmessage = (event) => {
         try {
-            let data = JSON.parse(event.data);
-            if (data.type == "host" && data.offer && data.ice) roomManager.createRoom(ws, data.offer, data.ice);
+            const data = JSON.parse(event.data);
+            if(data.type == "wait")return;
+            else if (data.type == "host" && data.sdp && data.ice) roomManager.createRoom(ws, data.sdp, data.ice);
             else if (data.type == "guest" && data.id) roomManager.enterRoom(Number(data.id), ws);
             else ws.close();
         } catch (e) {

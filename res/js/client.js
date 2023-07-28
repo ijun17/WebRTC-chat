@@ -1,5 +1,5 @@
-let multi = new Multi("wss://port-0-webrtc-test-eg4e2alkj86xoo.sel4.cloudtype.app/")//"port-0-webrtc-test-eg4e2alkj86xoo.sel4.cloudtype.app/");
-//multi.createRoom();
+const multi = new Multi("wss://port-0-webrtc-test-eg4e2alkj86xoo.sel4.cloudtype.app/")
+//const multi= new Multi("ws://localhost:8080");
 
 const roomForm = document.querySelector(".room-form");
 const loader = document.querySelector(".loader");
