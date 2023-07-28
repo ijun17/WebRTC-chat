@@ -9,23 +9,29 @@ class RoomManager{
     constructor(){
         this.MAX_SIZE=1000;
         this.rooms=new Array(this.MAX_SIZE);
-        this.emptyRooms=new Stack(this.MAX_SIZE);
+        this.emptyRooms=new Queue(this.MAX_SIZE);
         for(let i=0; i<this.MAX_SIZE; i++)this.emptyRooms.push(i);
     }
-    createRoom(ws,offer,ice){
-        if(this.isFull())return;
-        const id = this.emptyRooms.pop();
-        this.rooms[id] = new Room(ws,offer,ice);
-        ws.send(JSON.stringify({type:"hostid",id:id}))
-        ws.onmessage=(event)=>{console.log("Room complete: "+id); this.killRoom(id); }
-        ws.onclose=()=>{this.killRoom(id)};
-        console.log('Room created: '+id);
+    createRoom(ws,data){
+        if(this.emptyRooms.isEmpty()){
+            ws.send(JSON.stringify({type:"hostid",id:-1}));
+            ws.close();
+        }else{
+            const id = this.emptyRooms.pop();
+            this.rooms[id] = new Room(ws,data);
+            ws.send(JSON.stringify({type:"hostid",id:id}))
+            ws.onmessage=()=>{console.log("Room complete: "+id); this.killRoom(id); }
+            ws.onclose=()=>{this.killRoom(id)};
+            console.log('Room created: '+id);
+        }
+        
     }
-    enterRoom(id, ws){
-        if(!this.isLive(id))return;
-        let room=this.rooms[id];
-        room.setGuest(ws);
-        console.log('Room entered: '+ id);
+    enterRoom(ws, id){
+        if(this.isLive(id)){
+            let room=this.rooms[id];
+            room.setGuest(ws);
+            console.log('Room entered: '+ id);
+        }else ws.send("{'type':'error'}")
     }
     
     killRoom(id){
@@ -36,33 +42,30 @@ class RoomManager{
             console.log('Room killed: '+id);
         }
     }
-    isLive(id){return id>0 && id<this.MAX_SIZE && this.rooms[id]!=null}
-    isFull(){return this.emptyRooms.isEmpty();}
+    isLive(id){return id>=0 && id<this.MAX_SIZE && this.rooms[id]}
 }
 
-class Room{
+class Room {
     host;//host ws
-    offer;//host sdp
-    ice;//host ice
+    data;//host sdp, ice
     guest;//guest ws
-    constructor(ws, offer, ice){
-        this.host=ws;
-        this.offer=offer; 
-        this.ice=ice; 
-        this.guest=null;
+    constructor(ws, data) {
+        this.host = ws;
+        this.data = data;
+        this.guest = null;
     }
-    setGuest(ws){
-        if(this.guest)return;
+    setGuest(ws) {
+        if (this.guest) return;
         this.guest = ws;
-        ws.send(JSON.stringify({ type: "offer", sdp: this.offer, ice: this.ice }));
-        ws.onmessage = (event) => {this.host.send(event.data.toString("utf-8"));}
-        ws.onclose = () => { this.guest = null;}
+        ws.send(JSON.stringify(this.data));
+        ws.onmessage = (event) => { if (this.host) this.host.send(event.data.toString("utf-8")); }
+        ws.onclose = () => { this.guest = null; }
     }
-    reset(){
-        if(this.host && (this.host.readyState==WebSocket.OPEN || this.host.readyState==WebSocket.CONNECTING))this.host.close();
-        if(this.guest && (this.guest.readyState==WebSocket.OPEN || this.guest.readyState==WebSocket.CONNECTING))this.guest.close();
-        this.host=null;
-        this.guest=null;
+    reset() {
+        if (this.host) this.host.close();
+        if (this.guest) this.guest.close();
+        this.host = null;
+        this.guest = null;
     }
 }
 
@@ -75,11 +78,45 @@ class Stack {
         this.arr = new Array(this.MAX_SIZE);
         this.t = -1;
     }
-    push(e) { if (this.size() < this.MAX_SIZE) this.arr[++this.t] = e; }
+    push(e) { if (!this.isFull()) this.arr[++this.t] = e; }
     pop() { if (!this.isEmpty()) return this.arr[this.t--]; }
     top() { if (!this.isEmpty()) return this.arr[this.t]; }
-    size() { return this.t + 1; }
+    isFull() { return (this.t + 1 == this.MAX_SIZE); }
     isEmpty() { this.t == -1; }
+}
+
+class Queue {
+    arr;
+    MAX_SIZE;
+    f;
+    b;
+    size;
+    constructor(MAX_SIZE = 1000) {
+        this.MAX_SIZE = MAX_SIZE;
+        this.arr = new Array(this.MAX_SIZE);
+        this.f = 0;
+        this.b = 0;
+        this.size=0;
+    }
+    push(e) {
+        if (!this.isFull()) {
+            this.size++;
+            this.arr[this.b] = e;
+            this.b = this.next(this.b);
+        }
+    }
+    pop() {
+        if (!this.isEmpty()) {
+            this.size--;
+            const e = this.arr[this.f];
+            this.f = this.next(this.f);
+            return e;
+        }
+    }
+    front() { if (!this.isEmpty()) return this.arr[this.f]; }
+    isFull() { return this.size==this.MAX_SIZE; }
+    isEmpty() { return this.size==0; }
+    next(i) { return (i + 1) % this.MAX_SIZE; }
 }
 
 const connections = new Set(); //대기방
@@ -90,13 +127,15 @@ wss.on('connection', (ws) => {
     ws.onmessage = (event) => {
         try {
             const data = JSON.parse(event.data);
-            if(data.type == "wait")return;
-            else if (data.type == "host" && data.sdp && data.ice) roomManager.createRoom(ws, data.sdp, data.ice);
-            else if (data.type == "guest" && data.id) roomManager.enterRoom(Number(data.id), ws);
-            else ws.close();
+            switch (data.type) {
+                case "wait": break;
+                case "host": roomManager.createRoom(ws, data); break;
+                case "guest": roomManager.enterRoom(ws, Number(data.id)); break;
+                default: ws.close(); break;
+            }
         } catch (e) {
             ws.close();
-            console.error(e);
+            console.log(e);
         }
     };
     ws.onclose = () => { connections.delete(ws); };

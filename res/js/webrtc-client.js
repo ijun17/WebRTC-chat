@@ -1,14 +1,16 @@
-class Multi{
+class SimpleWebRTC{
+    ip;
     ws;
-    ip;//"wss://port-0-webrtc-test-eg4e2alkj86xoo.sel4.cloudtype.app/",
     pc;
     dc;
     localSDP;
     onroomcreated(){}
     ondatachannelopen(){}
     ondatachannelmessage(){}
+    onwebsocketclose(){}
+    onroomenterfail(){}
     constructor(ip){
-        this.ip=ip;//"localhost:8080"
+        this.ip=ip;
     }
     createRoom() {
         this.createWebRTC();
@@ -22,8 +24,8 @@ class Multi{
             }
             this.ws.onmessage = (event) => {
                 const data=JSON.parse(event.data);
-                if(data.id)this.onroomcreated(data.id)
-                else if(data.sdp)this.setRemote(data.sdp,data.ice);
+                if(data.type=="hostid")this.onroomcreated(data.id)
+                else if(data.type=="guest")this.setRemote(data.sdp,data.ice);
             }
         };
     }
@@ -36,21 +38,28 @@ class Multi{
         }
         this.ws.onmessage = (event) => {
             const data=JSON.parse(event.data);
-            this.setRemote(data.sdp,data.ice);
-            this.setLocal(this.pc.createAnswer());
-            this.pc.onicecandidate = (event) =>{
-                if(event.candidate)this.sendLocal("answer",this.localSDP,event.candidate)
-            } 
+            if(data.type=="host"){
+                this.setRemote(data.sdp,data.ice);
+                this.setLocal(this.pc.createAnswer());
+                this.pc.onicecandidate = (event) =>{
+                    if(event.candidate)this.sendLocal("guest",this.localSDP,event.candidate)
+                } 
+            }else this.onroomenterfail();
+            
         }
     }
     connectToSignalingServer(){
-        this.disconnectToSignalingServer(); 
+        this.disconnectToSignalingServer();
         this.ws = new WebSocket(this.ip);
-        this.ws.onclose = () => { console.log("websocket close") }
+        this.ws.onclose = () => { console.log("websocket close"); this.onwebsocketclose();}
         this.ws.onerror = () => { console.log("websocket error") }
     }
-    disconnectToSignalingServer(){if(this.isConneted())this.ws.close();}
+    disconnectToSignalingServer(){
+        if(this.ws)this.ws.close();
+    }
     createWebRTC(){
+        if(this.pc)this.pc.close();
+        if(this.dc)this.dc.close()
         this.pc = new RTCPeerConnection(null);
         this.pc.ondatachannel = (event) =>{this.dc=event.channel;};
         this.dc = this.pc.createDataChannel("dataChannel", { reliable: true , ordered: false});
@@ -58,11 +67,11 @@ class Multi{
         this.dc.onmessage = (event) => {this.ondatachannelmessage(event.data)}
     }
     send(message){
-        if(this.pc && this.pc.connectionState == "connected"){
+        if(this.dc && this.dc.readyState == "open"){
             this.dc.send(message);
             return true;
         }
-        console.log("데이터 채널이 연결되지 않았습니다.")
+        console.log("datachannel not connected")
         return false;
     }
     sendLocal(type, sdp, ice){
@@ -84,5 +93,4 @@ class Multi{
             console.log(e, sdpObject, iceObject)
         }
     }
-    isConneted(){return (this.ws && this.ws.readyState == WebSocket.OPEN);}
 }
