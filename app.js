@@ -126,7 +126,7 @@ const connections = new Set(); //대기방
 const roomManager = new RoomManager();
 
 wss.on('connection', (ws) => {
-    connections.delete(ws);
+    connections.add(ws);
     ws.onmessage = (event) => {
         try {
             const data = JSON.parse(event.data);
