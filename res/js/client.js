@@ -50,13 +50,13 @@ SceneSet[SceneType.enterRoomForm] = () => {
 SceneSet[SceneType.createRoomForm] = () => {
     visible(roomForm);
     multi.onwebsocketclose = () => {
-        alert("서버와의 연결이 끊어졌습니다.\n(확인을 누르시면 다시 접속합니다.)")
-        multi.createRoom();
+        alert("서버와의 연결이 끊어졌습니다.")
+        changeScene(SceneType.enterRoomForm)
     }
     multi.onroomcreated = (id) => {
         if (id == -1) {
-            alert("방이 꽉찼습니다.\n(확인을 누르시면 방만들기를 다시 시도합니다.)")
-            multi.createRoom();
+            alert("방이 꽉찼습니다.")
+            changeScene(SceneType.enterRoomForm);
         } else createRoomInput.value = id;
     }
     multi.ondatachannelopen = () => { changeScene(SceneType.chat) }
@@ -74,12 +74,12 @@ SceneSet[SceneType.loading] = (roomID) => {
     visible(loader);
     multi.enterRoom(roomID);
     multi.onroomenterfail = () => {
-        changeScene(SceneType.enterRoomForm)
         alert("연결을 실패했습니다.")
+        changeScene(SceneType.enterRoomForm)
     }
     multi.onwebsocketclose = () => {
-        changeScene(SceneType.enterRoomForm)
         alert("연결을 실패했습니다.")
+        changeScene(SceneType.enterRoomForm)
     }
     multi.ondatachannelopen = () => { changeScene(SceneType.chat) }
 }
