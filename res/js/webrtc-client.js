@@ -93,4 +93,11 @@ class SimpleWebRTC{
             console.log(e, sdpObject, iceObject)
         }
     }
+    resetEvent(){
+        this.onroomcreated=()=>{};
+        this.ondatachannelopen=()=>{};
+        this.ondatachannelmessage=()=>{};
+        this.onwebsocketclose=()=>{};
+        this.onroomenterfail=()=>{};
+    }
 }

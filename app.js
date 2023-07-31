@@ -31,7 +31,10 @@ class RoomManager{
             let room=this.rooms[id];
             room.setGuest(ws);
             console.log('Room entered: '+ id);
-        }else ws.send("{'type':'error'}")
+        }else {
+            ws.send(JSON.stringify({type:"error"}))
+            ws.close();
+        }
     }
     
     killRoom(id){
@@ -129,17 +132,17 @@ wss.on('connection', (ws) => {
             const data = JSON.parse(event.data);
             switch (data.type) {
                 case "wait": break;
-                case "host": roomManager.createRoom(ws, data); break;
-                case "guest": roomManager.enterRoom(ws, Number(data.id)); break;
+                case "host": roomManager.createRoom(ws, data); connections.delete(ws); break;
+                case "guest": roomManager.enterRoom(ws, Number(data.id)); connections.delete(ws); break;
                 default: ws.close(); break;
             }
         } catch (e) {
             ws.close();
             console.log(e);
-        }
+        } 
     };
     ws.onclose = () => { connections.delete(ws); };
-    ws.onerror = (error) => { console.log(error) }
+    ws.onerror = (error) => { connections.delete(ws); console.log(error) }
 });
 
 console.log("start")
