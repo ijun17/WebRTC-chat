@@ -10,65 +10,103 @@ class RoomManager{
         this.MAX_SIZE=1000;
         this.rooms=new Array(this.MAX_SIZE);
         this.emptyRooms=new Queue(this.MAX_SIZE);
-        for(let i=0; i<this.MAX_SIZE; i++)this.emptyRooms.push(i);
-    }
-    createRoom(ws,data){
-        if(this.emptyRooms.isEmpty()){
-            ws.send(JSON.stringify({type:"hostid",id:-1}));
-            ws.close();
-        }else{
-            const id = this.emptyRooms.pop();
-            this.rooms[id] = new Room(ws,data);
-            ws.send(JSON.stringify({type:"hostid",id:id}))
-            ws.onmessage=()=>{console.log("Room complete: "+id); this.killRoom(id); }
-            ws.onclose=()=>{this.killRoom(id)};
-            console.log('Room created: '+id);
+        for(let i=0; i<this.MAX_SIZE; i++){
+            this.rooms[i] = new Room(i);
+            this.emptyRooms.push(i);
         }
-        
+    }
+    createRoom(ws) {
+        if (!this.emptyRooms.isEmpty()) {
+            const id = this.emptyRooms.pop();
+            this.rooms[id].setHost(ws)
+            ws.onclose = () => { this.closeRoom(id) };
+        } else {
+            ws.send(JSON.stringify({ type: "hostid", id: -1 }));
+            ws.close();
+        }
     }
     enterRoom(ws, id){
-        if(this.isLive(id)){
-            let room=this.rooms[id];
-            room.setGuest(ws);
-            console.log('Room entered: '+ id);
+        if(this.isValidId(id) && this.rooms[id].canEnter()){
+            this.rooms[id].setGuest(ws);
         }else {
-            ws.send(JSON.stringify({type:"error"}))
             ws.close();
         }
     }
     
-    killRoom(id){
-        if(this.isLive(id)){
+    closeRoom(id){
+        if(this.isValidId(id) && this.rooms[id].isOpen()){
             this.rooms[id].reset();
-            this.rooms[id]=null;
             this.emptyRooms.push(id);
-            console.log('Room killed: '+id);
         }
     }
-    isLive(id){return id>=0 && id<this.MAX_SIZE && this.rooms[id]}
+    isValidId(id){return id % 1 === 0 && id>=0 && id<this.MAX_SIZE}
 }
 
+const RoomState = {CLOSE:0, CREATE:1, ENTER:2, OFFER:3, ANSWER:4, ICE:5};
+Object.freeze(RoomState);
+
 class Room {
+    id;
     host;//host ws
-    data;//host sdp, ice
+    host_sdp
+    host_ice=[]
+    host_ice_i=0;
+
     guest;//guest ws
-    constructor(ws, data) {
+    constructor(id) {
+        this.id=id;
+    }
+    setHost(ws) {
+        console.log('Room created: '+this.id);
         this.host = ws;
-        this.data = data;
-        this.guest = null;
+        ws.send(JSON.stringify({ type: "hostid", id: this.id }))
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            switch(data.type){
+                case "complete" : ws.close(); break;
+                case "sdp"    : this.host_sdp=data.sdp; break;
+                case "ice"    : this.addHostIce(data.ice); break;
+                default       : ws.close(); break;
+            }
+        }
     }
     setGuest(ws) {
-        if (this.guest) return;
+        console.log('Room entered: '+ this.id);
         this.guest = ws;
-        ws.send(JSON.stringify(this.data));
-        ws.onmessage = (event) => { if (this.host) this.host.send(event.data.toString("utf-8")); }
-        ws.onclose = () => { this.guest = null; }
+        ws.send(JSON.stringify({type:"sdp", sdp:this.host_sdp}));
+        this.addHostIce(false);
+        ws.onmessage = (event) => { 
+            if (!this.host) return;
+            const data = JSON.parse(event.data);
+            switch(data.type){
+                case "sdp"    : this.host.send(event.data.toString("utf-8")); break;
+                case "ice"    : this.host.send(event.data.toString("utf-8")); break;
+                default       : this.resetGuset();  break;
+            }
+        }
+        ws.onclose=()=>{this.resetGuset();};
+    }
+    addHostIce(ice){
+        if(ice)this.host_ice.push(ice);
+        if(this.guest)
+            for(; this.host_ice_i<this.host_ice.length; this.host_ice_i++)
+                this.guest.send(JSON.stringify({type:"ice", ice:this.host_ice[this.host_ice_i]}));
+
+    }
+    isOpen() {return this.host instanceof WebSocket;}
+    canEnter() {return this.isOpen() && this.host_sdp && !this.guest}
+    resetGuset(){
+        if (this.guest) this.guest.close();
+        this.guest=null;
+        this.host_ice_i=0;
     }
     reset() {
+        console.log('Room Closed: '+this.id);
+        this.resetGuset();
         if (this.host) this.host.close();
-        if (this.guest) this.guest.close();
         this.host = null;
-        this.guest = null;
+        this.host_sdp=null;
+        this.host_ice=[];
     }
 }
 
@@ -120,6 +158,18 @@ class Queue {
     isFull() { return this.size==this.MAX_SIZE; }
     isEmpty() { return this.size==0; }
     next(i) { return (i + 1) % this.MAX_SIZE; }
+    shuffle(){
+        for(let i=0; i<this.size-1; i++){
+            for(let j=i+1; j<this.size; j++){
+                if(Math.random()>0.5){
+                    let a=(i+this.f)%this.MAX_SIZE, b=(j+this.f)%this.MAX_SIZE;
+                    let temp=this.arr[a];
+                    this.arr[a]=this.arr[b];
+                    this.arr[b]=temp;
+                }
+            }
+        }
+    }
 }
 
 const connections = new Set(); //대기방
@@ -132,7 +182,7 @@ wss.on('connection', (ws) => {
             const data = JSON.parse(event.data);
             switch (data.type) {
                 case "wait": break;
-                case "host": roomManager.createRoom(ws, data); connections.delete(ws); break;
+                case "host": roomManager.createRoom(ws); connections.delete(ws); break;
                 case "guest": roomManager.enterRoom(ws, Number(data.id)); connections.delete(ws); break;
                 default: ws.close(); break;
             }
