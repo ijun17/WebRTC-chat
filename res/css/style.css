@@ -76,12 +76,14 @@ body {
 
 .create-room-input-container,
 .enter-room-input-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    display: block;
     text-align: center;
     width: 100%;
     color: var(--main-text-color);
+}
+
+.create-room-input-container{
+    display: none;
 }
 
 input {
@@ -182,13 +184,14 @@ input {
 }
 
 .chating-message-me{
-    margin-right: 20px;
+    margin: 10px 20px;
     font-size: 20px;
-    text-align: end;
+    font-weight: bold;
 }
 
 .chating-message-other{
-    margin-left: 20px;
+    color: var(--point-color);
+    margin: 10px 20px;
     font-size: 20px;
-    text-align: start;
+    font-weight: bold;
 }

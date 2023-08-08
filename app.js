@@ -42,9 +42,6 @@ class RoomManager{
     isValidId(id){return id % 1 === 0 && id>=0 && id<this.MAX_SIZE}
 }
 
-const RoomState = {CLOSE:0, CREATE:1, ENTER:2, OFFER:3, ANSWER:4, ICE:5};
-Object.freeze(RoomState);
-
 class Room {
     id;
     host;//host ws
@@ -63,7 +60,7 @@ class Room {
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
             switch(data.type){
-                case "complete" : ws.close(); break;
+                case "wait"   : break;
                 case "sdp"    : this.host_sdp=data.sdp; break;
                 case "ice"    : this.addHostIce(data.ice); break;
                 default       : ws.close(); break;
@@ -181,7 +178,6 @@ wss.on('connection', (ws) => {
         try {
             const data = JSON.parse(event.data);
             switch (data.type) {
-                case "wait": break;
                 case "host": roomManager.createRoom(ws); connections.delete(ws); break;
                 case "guest": roomManager.enterRoom(ws, Number(data.id)); connections.delete(ws); break;
                 default: ws.close(); break;

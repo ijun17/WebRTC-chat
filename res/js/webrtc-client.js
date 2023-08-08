@@ -6,6 +6,7 @@ class SimpleWebRTC{
     dc;
     onroomcreated(){}
     ondatachannelopen(){}
+    ondatachannelclose(){}
     ondatachannelmessage(){}
     onwebsocketclose(){}
     onroomenterfail(){}
@@ -18,8 +19,8 @@ class SimpleWebRTC{
         this.ws.onopen = () => {
             console.log("websocket open")
             this.createWebRTC();
-            this.setLocal(this.pc.createOffer());
             this.ws.send(JSON.stringify({type:"host"}))
+            this.setLocal(this.pc.createOffer());
         }
         this.ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
@@ -79,8 +80,9 @@ class SimpleWebRTC{
             }
         }
         this.dc = this.pc.createDataChannel("dataChannel", { reliable: true , ordered: false});
-        this.dc.onopen = () => {this.ondatachannelopen(); this.ws.send('{"type":"complete"}'); console.log("datachannel open")};
+        this.dc.onopen = () => {this.ondatachannelopen(); this.disconnectToSignalingServer(); console.log("datachannel open")};
         this.dc.onmessage = (event) => {this.ondatachannelmessage(event.data)}
+        this.dc.onclose = () => {this.ondatachannelclose();}
     }
     isWebSocketOpen() {
         return this.ws && this.ws.readyState === WebSocket.OPEN;
@@ -89,12 +91,8 @@ class SimpleWebRTC{
         return this.dc && this.dc.readyState === 'open';
     }
     send(message){
-        if(this.dc && this.dc.readyState == "open"){
-            this.dc.send(message);
-            return true;
-        }
-        console.log("datachannel not connected")
-        return false;
+        this.dc.send(message);
+        return this.isDataChannelOpen();
     }
     setLocal(sdpPromise){
         sdpPromise.then((sdp)=>{
@@ -117,6 +115,7 @@ class SimpleWebRTC{
     resetEvent(){
         this.onroomcreated=()=>{};
         this.ondatachannelopen=()=>{};
+        this.ondatachannelclose=()=>{};
         this.ondatachannelmessage=()=>{};
         this.onwebsocketclose=()=>{};
         this.onroomenterfail=()=>{};

@@ -90,6 +90,10 @@ SceneSet[SceneType.chat] = () => {
         chatingContent.innerHTML += `<p class="chating-message-other">${message}</p>`;
         chatingContent.scrollTop = chatingContent.scrollHeight;
     }
+    multi.ondatachannelclose = () => {
+        alert("연결이 끊어졌습니다.")
+        changeScene(SceneType.enterRoomForm)
+    }
 }
 
 createRoomButton.onclick = () => { changeScene(SceneType.createRoomForm) };
