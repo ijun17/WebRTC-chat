@@ -102,7 +102,7 @@ enterRoomInput.onkeyup = (event) => { if (event.key === 'Enter') changeScene(Sce
 
 function sendMessage() {
     let message = multi.send(chatingSendInput.value) ? chatingSendInput.value : "연결이 끊어졌습니다.";
-    chatingContent.innerHTML += `<p class="chating-message-me">${message}</p>`;
+    chatingContent.innerHTML += `<div class="chating-message-me">${message}</div>`;
     chatingContent.scrollTop = chatingContent.scrollHeight;
     chatingSendInput.value = "";
 }

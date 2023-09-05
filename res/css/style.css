@@ -187,11 +187,23 @@ input {
     margin: 10px 20px;
     font-size: 20px;
     font-weight: bold;
+    width:fit-content;
+    border-radius: 10px;
+    padding: 5px;
+    
+    color: var(--point-color);
+    box-shadow: 0 0 3px 1px var(--border-color);
 }
 
 .chating-message-other{
-    color: var(--point-color);
     margin: 10px 20px;
     font-size: 20px;
     font-weight: bold;
+    width:fit-content;
+    border-radius: 10px;
+    padding: 5px;
+    
+    color: white;
+    background-color: var(--point-color);
+    box-shadow: 0 0 3px 1px var(--border-color);
 }
