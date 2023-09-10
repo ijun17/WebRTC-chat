@@ -2,10 +2,12 @@
 
 이 프로젝트는 WebRTC의 data channel을 이용한 두 피어 간 실시간 채팅 웹 어플리케이션입니다.
 
+[링크](https://ijun17.github.io/WebRTC-chat/)
+
 ## 시그널링 서버
+- 코드는 app.js에 있습니다.
 - node.js와 ws 라이브러리로 구현했습니다.
-- '방 만들기' 또는 '방 들어오기' 기능이 있습니다.
-- 이 서버는 두 피어의 SDP와 ice candidate를 교환합니다.
+- '방 만들기'와 '방 들어오기'로 상대방과 매칭합니다.
 - 배포는 cloudtype에 했습니다.
 
 ## 클라이언트
