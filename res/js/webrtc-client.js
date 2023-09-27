@@ -60,9 +60,8 @@ class SimpleWebRTC{
     connectToSignalingServer(){
         this.disconnectToSignalingServer();
         this.ws = new WebSocket(this.signaling);
-        this.ws.onclose = () => { console.log("websocket close"); this.isOpenWS=false; this.onwebsocketclose();}
+        this.ws.onclose = () => { console.log("websocket close"); this.onwebsocketclose();}
         this.ws.onerror = (error) => { console.log("websocket error:", error) }
-        this.isOpenWS=true;
     }
     disconnectToSignalingServer(){
         if(this.ws)this.ws.close();

@@ -66,6 +66,7 @@ class Room {
         ws.send(JSON.stringify({ type: "hostid", id: this.id }))
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
+            console.log(event.data.toString("utf-8"))
             switch(data.type){
                 case "wait"   : break;
                 case "sdp"    : this.host_sdp=data.sdp; break;
@@ -82,6 +83,7 @@ class Room {
         ws.onmessage = (event) => { 
             if (!this.host) return;
             const data = JSON.parse(event.data);
+            console.log(event.data.toString("utf-8"))
             switch(data.type){
                 case "sdp"    : this.host.send(event.data.toString("utf-8")); break;
                 case "ice"    : this.host.send(event.data.toString("utf-8")); break;
