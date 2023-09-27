@@ -66,7 +66,7 @@ class Room {
         ws.send(JSON.stringify({ type: "hostid", id: this.id }))
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            console.log(event.data.toString("utf-8"))
+            console.log("[HOST]\n",event.data.toString("utf-8"))
             switch(data.type){
                 case "wait"   : break;
                 case "sdp"    : this.host_sdp=data.sdp; break;
@@ -83,7 +83,7 @@ class Room {
         ws.onmessage = (event) => { 
             if (!this.host) return;
             const data = JSON.parse(event.data);
-            console.log(event.data.toString("utf-8"))
+            console.log("[GUEST]\n",event.data.toString("utf-8"))
             switch(data.type){
                 case "sdp"    : this.host.send(event.data.toString("utf-8")); break;
                 case "ice"    : this.host.send(event.data.toString("utf-8")); break;
@@ -116,21 +116,21 @@ class Room {
     }
 }
 
-class Stack {
-    arr;
-    MAX_SIZE;
-    t;
-    constructor(MAX_SIZE = 1000) {
-        this.MAX_SIZE = MAX_SIZE;
-        this.arr = new Array(this.MAX_SIZE);
-        this.t = -1;
-    }
-    push(e) { if (!this.isFull()) this.arr[++this.t] = e; }
-    pop() { if (!this.isEmpty()) return this.arr[this.t--]; }
-    top() { if (!this.isEmpty()) return this.arr[this.t]; }
-    isFull() { return (this.t + 1 == this.MAX_SIZE); }
-    isEmpty() { this.t == -1; }
-}
+// class Stack {
+//     arr;
+//     MAX_SIZE;
+//     t;
+//     constructor(MAX_SIZE = 1000) {
+//         this.MAX_SIZE = MAX_SIZE;
+//         this.arr = new Array(this.MAX_SIZE);
+//         this.t = -1;
+//     }
+//     push(e) { if (!this.isFull()) this.arr[++this.t] = e; }
+//     pop() { if (!this.isEmpty()) return this.arr[this.t--]; }
+//     top() { if (!this.isEmpty()) return this.arr[this.t]; }
+//     isFull() { return (this.t + 1 == this.MAX_SIZE); }
+//     isEmpty() { this.t == -1; }
+// }
 
 class Queue {
     arr;
