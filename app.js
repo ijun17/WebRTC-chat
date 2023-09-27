@@ -71,6 +71,7 @@ class Room {
                 case "wait"   : break;
                 case "sdp"    : this.host_sdp=data.sdp; break;
                 case "ice"    : this.addHostIce(data.ice); break;
+                case "log"    : break;
                 default       : ws.close(); break;
             }
         }
@@ -78,7 +79,7 @@ class Room {
     setGuest(ws) {
         console.log('Room entered: '+ this.id);
         this.guest = ws;
-        ws.send(JSON.stringify({type:"sdp", sdp:this.host_sdp}));
+        ws.send(JSON.stringify({type:"sdp", sdp:this.host_sdp})); //호스트 sdp 전송
         this.addHostIce(false);
         ws.onmessage = (event) => { 
             if (!this.host) return;
@@ -87,6 +88,7 @@ class Room {
             switch(data.type){
                 case "sdp"    : this.host.send(event.data.toString("utf-8")); break;
                 case "ice"    : this.host.send(event.data.toString("utf-8")); break;
+                case "log"    : break;
                 default       : this.resetGuset();  break;
             }
         }
@@ -95,8 +97,11 @@ class Room {
     addHostIce(ice){
         if(ice)this.host_ice.push(ice);
         if(this.guest)
-            for(; this.host_ice_i<this.host_ice.length; this.host_ice_i++)
+            for(; this.host_ice_i<this.host_ice.length; this.host_ice_i++){
                 this.guest.send(JSON.stringify({type:"ice", ice:this.host_ice[this.host_ice_i]}));
+                console.log(this.id, "sendIceToGuest(", this.host_ice_i+1,"/",this.host_ice.length,")")
+            }
+                
 
     }
     isOpen() {return this.host instanceof WebSocket;}

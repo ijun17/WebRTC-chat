@@ -25,6 +25,7 @@ class SimpleWebRTC{
         this.ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
             console.log(data);
+            this.sendLog(data.type)
             switch(data.type){
                 case "hostid" : this.onroomcreated(data.id); break;
                 case "sdp"    : this.setRemote(data.sdp); break;
@@ -43,6 +44,7 @@ class SimpleWebRTC{
         this.ws.onmessage = (event) => {
             const data=JSON.parse(event.data);
             console.log(data);
+            this.sendLog(data.type)
             switch(data.type){
                 case "sdp":
                     this.setRemote(data.sdp);
@@ -92,6 +94,9 @@ class SimpleWebRTC{
     send(message){
         this.dc.send(message);
         return this.isDataChannelOpen();
+    }
+    sendLog(log){
+        if(this.isWebSocketOpen())this.ws.send(JSON.stringify({type:"log", log:log}))
     }
     setLocal(sdpPromise){
         sdpPromise.then((sdp)=>{
