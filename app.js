@@ -49,6 +49,12 @@ class RoomManager{
     isValidId(id){return id % 1 === 0 && id>=0 && id<this.MAX_SIZE}
 }
 
+
+
+
+
+
+
 class Room {
     id;
     host;//host ws
@@ -61,34 +67,32 @@ class Room {
         this.id=id;
     }
     setHost(ws) {
-        console.log('Room created: '+this.id);
+        console.log(`<Room ${this.id}> created`);
         this.host = ws;
         ws.send(JSON.stringify({ type: "hostid", id: this.id }))
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            console.log("[HOST]\n",event.data.toString("utf-8"))
             switch(data.type){
                 case "wait"   : break;
                 case "sdp"    : this.host_sdp=data.sdp; break;
                 case "ice"    : this.addHostIce(data.ice); break;
-                case "log"    : break;
+                case "log"    : console.log(`<Room ${this.id}> HOST: ${data.log}`); break;
                 default       : ws.close(); break;
             }
         }
     }
     setGuest(ws) {
-        console.log('Room entered: '+ this.id);
+        console.log(`<Room ${this.id}> entered`);
         this.guest = ws;
         ws.send(JSON.stringify({type:"sdp", sdp:this.host_sdp})); //호스트 sdp 전송
         this.addHostIce(false);
         ws.onmessage = (event) => { 
             if (!this.host) return;
             const data = JSON.parse(event.data);
-            console.log("[GUEST]\n",event.data.toString("utf-8"))
             switch(data.type){
                 case "sdp"    : this.host.send(event.data.toString("utf-8")); break;
                 case "ice"    : this.host.send(event.data.toString("utf-8")); break;
-                case "log"    : break;
+                case "log"    : console.log(`<Room ${this.id}> GUEST: ${data.log}`);break;
                 default       : this.resetGuset();  break;
             }
         }
@@ -99,7 +103,7 @@ class Room {
         if(this.guest)
             for(; this.host_ice_i<this.host_ice.length; this.host_ice_i++){
                 this.guest.send(JSON.stringify({type:"ice", ice:this.host_ice[this.host_ice_i]}));
-                console.log(this.id, "sendIceToGuest(", this.host_ice_i+1,"/",this.host_ice.length,")")
+                console.log(`<Room ${this.id}> sendIceToGuest(${this.host_ice_i+1}/${this.host_ice.length})`)
             }
                 
 
