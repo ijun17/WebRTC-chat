@@ -1,4 +1,4 @@
-const multi = new SimpleWebRTC("wss://tawkor.xyz:8083","stun:stun.l.google.com:19302")
+const multi = new SimpleWebRTC("wss://taskify.shop:8083","stun:stun.l.google.com:19302")
 //const multi= new SimpleWebRTC("ws://localhost:8080", "stun:stun.l.google.com:19302");
 
 const roomForm = document.querySelector(".room-form");
